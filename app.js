@@ -29,10 +29,12 @@ intializeDBAndServer()
 
 const getFollowingPeopleIdsOfUser = async username => {
   const getTheFollowingPeopleQuery = `
-    SELECT 
-    following_user_id FROM follower
-    INNER JOIN user ON user_id=follower.follower_user_id 
-    WHERE user.username='${username}' ; `
+SELECT 
+  following_user_id 
+FROM follower
+INNER JOIN user ON user_id = follower.follower_user_id 
+WHERE user.username = '${username}'; 
+`
   const followingPeople = await db.all(getTheFollowingPeopleQuery)
   const arrayOfIds = followingPeople.map(eachUser => eachUser.following_user_id)
   return arrayOfIds
@@ -41,7 +43,7 @@ const authentication = (request, response, next) => {
   let jwtToken
   const authHeader = request.headers['authorization']
   if (authHeader) {
-    jwtToken = authHeader.split(" ")[1];
+    jwtToken = authHeader.split(' ')[1]
   }
   if (jwtToken) {
     jwt.verify(jwtToken, 'SECRET_KEY', async (error, payload) => {
@@ -61,15 +63,17 @@ const authentication = (request, response, next) => {
 }
 
 const tweetAcessVerification = async (request, response, next) => {
-  const {userId} = request;
-  const {tweetId} = request.params;
-  const getTweetQuery = ` SELECT
+  const {userId} = request
+  const {tweetId} = request.params
+
+  const getTweetQuery = `
+SELECT
     *
-    FROM 
-    tweet INNER JOIN follower ON tweet.user_id=folower.following_user_id 
-    WHERE 
-    tweet.tweet_id='${tweetId}' AND follower_user_id='${userId}';
-    `
+FROM 
+    tweet INNER JOIN follower ON tweet.user_id = follower.following_user_id 
+WHERE 
+    tweet.tweet_id = '${tweetId}' AND follower_user_id = '${userId}';
+`
   const tweet = await db.get(getTweetQuery)
   if (tweet === undefined) {
     response.status(401)
@@ -156,7 +160,7 @@ app.get('/user/following/', authentication, async (request, response) => {
 })
 
 app.get('/user/followers/'.authentication, async (request, response) => {
-  const {username, userId} = request;
+  const {username, userId} = request
   const getFollowersQuery = `SELECT DISTINCT name FROM follower INNER JOIN user ON user.user_id=follower.follower_user_id
     WHERE following_user_id='${userId}';`
   const followers = await db.all(getFollowersQuery)
